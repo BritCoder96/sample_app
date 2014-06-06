@@ -28,4 +28,17 @@ describe Micropost do
   	before { @micropost.content = "a" * 141 }
   	it { should_not be_valid }
   end
+
+  describe 'today scope' do
+    it 'should not include posts from yesterday' do
+      old_post = Micropost.create(created_at: Date.yesterday.beginning_of_day, content: 'Hello', user_id: 1)
+      new_post = Micropost.create(content: 'Oh Hey', user_id: 2, created_at: Date.today)
+      future_post = Micropost.create(content: 'Oh Hey', user_id: 2, created_at: Date.tomorrow)
+      Micropost.all.should include old_post
+      Micropost.all.should include new_post
+      MicropostQuery.new(user.microposts).today.new(user.microposts).should include new_post
+      MicropostQuery.new(user.microposts).today.should_not include old_post
+      MicropostQuery.new(user.microposts).today.should_not include future_post
+    end
+  end
 end
